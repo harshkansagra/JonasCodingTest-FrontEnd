@@ -1,0 +1,63 @@
+<div class="container">
+    <h1 class="font-weight-bold text-left">Pizza Ordering System</h1>
+
+    <table mat-table [dataSource]="dataSource" class="table table-border mt-4">
+
+        <!-- Topping Column -->
+        <ng-container matColumnDef="topping">
+            <th mat-header-cell *matHeaderCellDef class="font-weight-bold fs-6"> Topping </th>
+            <td mat-cell *matCellDef="let element">
+                <div [ngClass]="{
+                    'font-weight-bold fs-5': element.uniqueRow && element.uniqueRow.type == 'separator' 
+                  }">
+                    <span *ngIf="element.uniqueRow" class="font-weight-bold">{{ element.uniqueRow.title }}</span>
+                    <span *ngIf="!element.uniqueRow" class="font-weight-bold">
+                        {{element.topping?.name}} ({{element.topping?.price | currency:'USD':'symbol':'1.0-2'}})
+                    </span>
+                </div>
+            </td>
+        </ng-container>
+
+        <!-- Dynamically Generate Pizza Size Columns -->
+        <ng-container *ngFor="let order of finalOrder; let i = index" [matColumnDef]="order.pizza.name">
+            <th mat-header-cell *matHeaderCellDef class="text-center font-weight-bold fs-6">
+                {{order.pizza.displayName}} ({{order.pizza.price | currency:'USD':'symbol':'1.0-2'}})
+                <br />
+                <!-- Add Pizza Button -->
+                <mat-icon (click)="updatePizzaCount(i, false)" class="text-danger">remove</mat-icon>
+                <span>{{order.count}}</span>
+                <mat-icon (click)="updatePizzaCount(i, true)" class="text-success">add</mat-icon>
+            </th>
+            <td mat-cell *matCellDef="let element">
+                <div class="text-center">
+                    <ng-container *ngIf="!element.uniqueRow">
+                        <mat-checkbox (change)="updateTopping(i, element.topping)"
+                            [checked]="checkPizzaTopping(i, element.topping)" [disabled]="order.count == 0">
+                        </mat-checkbox>
+                    </ng-container>
+                    <ng-container *ngIf="element.uniqueRow && element.uniqueRow.type == 'offer'">
+                        <span *ngIf="order.appliedOffer > 0">Offer{{order.appliedOffer}}</span>
+                    </ng-container>
+                    <ng-container *ngIf="element.uniqueRow && element.uniqueRow.type == 'total'">
+                        <span *ngIf="order.price > 0"
+                            [ngStyle]="{'text-decoration': order.offerPrice != order.price ? 'line-through' : 'none'}">{{order.price
+                            |
+                            currency:'USD':'symbol':'1.2-2'}}</span>
+                        <span *ngIf="order.offerPrice != order.price" class="d-block text-success">
+                            {{order.offerPrice | currency:'USD':'symbol':'1.2-2'}}
+                        </span>
+                    </ng-container>
+                </div>
+            </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <button class="btn btn-primary mt-3" [disabled]="!checkAnyPizza()" (click)="calculateOrderTotal()">Calculate
+        Total</button>
+    <div *ngIf="totalPrice > 0" class="mt-2">
+        <span>{{totalPrice | currency:'USD':'symbol':'1.2-2'}}</span>
+    </div>
+</div>
